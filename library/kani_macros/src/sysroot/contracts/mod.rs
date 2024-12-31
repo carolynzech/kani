@@ -142,7 +142,7 @@
 //!     match kani_contract_mode {
 //!         kani::internal::RECURSION_CHECK => {
 //!             #[kanitool::is_contract_generated(recursion_check)]
-//!             #[allow(dead_code, unused_variables, unused_mut)]
+//!             #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!             let mut __kani_recursion_check_div =
 //!                 || -> u32
 //!                     {
@@ -150,7 +150,7 @@
 //!                         static mut REENTRY: bool = false;
 //!                         if unsafe { REENTRY } {
 //!                                 #[kanitool::is_contract_generated(replace)]
-//!                                 #[allow(dead_code, unused_variables, unused_mut)]
+//!                                 #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!                                 let mut __kani_replace_div =
 //!                                     || -> u32
 //!                                         {
@@ -164,14 +164,14 @@
 //!                             } else {
 //!                                unsafe { REENTRY = true };
 //!                                #[kanitool::is_contract_generated(check)]
-//!                                #[allow(dead_code, unused_variables, unused_mut)]
+//!                                #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!                                let mut __kani_check_div =
 //!                                    || -> u32
 //!                                        {
 //!                                            kani::assume(divisor != 0);
 //!                                            let _wrapper_arg = ();
 //!                                            #[kanitool::is_contract_generated(wrapper)]
-//!                                            #[allow(dead_code, unused_variables, unused_mut)]
+//!                                            #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!                                            let mut __kani_modifies_div =
 //!                                                |_wrapper_arg| -> u32 { dividend / divisor };
 //!                                            let result_kani_internal: u32 =
@@ -191,7 +191,7 @@
 //!         }
 //!         kani::internal::REPLACE => {
 //!             #[kanitool::is_contract_generated(replace)]
-//!             #[allow(dead_code, unused_variables, unused_mut)]
+//!             #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!             let mut __kani_replace_div =
 //!                 || -> u32
 //!                     {
@@ -206,14 +206,14 @@
 //!         }
 //!         kani::internal::SIMPLE_CHECK => {
 //!             #[kanitool::is_contract_generated(check)]
-//!             #[allow(dead_code, unused_variables, unused_mut)]
+//!             #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!             let mut __kani_check_div =
 //!                 || -> u32
 //!                     {
 //!                         kani::assume(divisor != 0);
 //!                         let _wrapper_arg = ();
 //!                         #[kanitool::is_contract_generated(wrapper)]
-//!                         #[allow(dead_code, unused_variables, unused_mut)]
+//!                         #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!                         let mut __kani_modifies_div =
 //!                             |_wrapper_arg| -> u32 { dividend / divisor };
 //!                         let result_kani_internal: u32 =
@@ -275,7 +275,7 @@
 //!     match kani_contract_mode {
 //!         kani::internal::RECURSION_CHECK => {
 //!             #[kanitool::is_contract_generated(recursion_check)]
-//!             #[allow(dead_code, unused_variables, unused_mut)]
+//!             #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!             let mut __kani_recursion_check_modify =
 //!                 ||
 //!                     {
@@ -283,7 +283,7 @@
 //!                         static mut REENTRY: bool = false;
 //!                         if unsafe { REENTRY } {
 //!                                 #[kanitool::is_contract_generated(replace)]
-//!                                 #[allow(dead_code, unused_variables, unused_mut)]
+//!                                 #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!                                 let mut __kani_replace_modify =
 //!                                     ||
 //!                                         {
@@ -306,7 +306,7 @@
 //!                             } else {
 //!                                unsafe { REENTRY = true };
 //!                                #[kanitool::is_contract_generated(check)]
-//!                                #[allow(dead_code, unused_variables, unused_mut)]
+//!                                #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!                                let mut __kani_check_modify =
 //!                                    ||
 //!                                        {
@@ -315,7 +315,7 @@
 //!                                            let remember_kani_internal_92cc419d8aca576c = *ptr + 1;
 //!                                            let _wrapper_arg = (ptr as *const _,);
 //!                                            #[kanitool::is_contract_generated(wrapper)]
-//!                                            #[allow(dead_code, unused_variables, unused_mut)]
+//!                                            #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!                                            let mut __kani_modifies_modify =
 //!                                                |_wrapper_arg| { *ptr += 1; };
 //!                                            let result_kani_internal: () =
@@ -338,7 +338,7 @@
 //!         }
 //!         kani::internal::REPLACE => {
 //!             #[kanitool::is_contract_generated(replace)]
-//!             #[allow(dead_code, unused_variables, unused_mut)]
+//!             #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!             let mut __kani_replace_modify =
 //!                 ||
 //!                     {
@@ -362,7 +362,7 @@
 //!         }
 //!         kani::internal::SIMPLE_CHECK => {
 //!             #[kanitool::is_contract_generated(check)]
-//!             #[allow(dead_code, unused_variables, unused_mut)]
+//!             #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!             let mut __kani_check_modify =
 //!                 ||
 //!                     {
@@ -371,7 +371,7 @@
 //!                         let remember_kani_internal_92cc419d8aca576c = *ptr + 1;
 //!                         let _wrapper_arg = (ptr as *const _,);
 //!                         #[kanitool::is_contract_generated(wrapper)]
-//!                         #[allow(dead_code, unused_variables, unused_mut)]
+//!                         #[allow(dead_code, unused_variables, unused_mut, unreachable_code)]
 //!                         let mut __kani_modifies_modify =
 //!                             |_wrapper_arg| { *ptr += 1; };
 //!                         let result_kani_internal: () =
