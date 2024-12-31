@@ -25,7 +25,6 @@ fn add_one(ptr: &mut u32) {
     *ptr += 1;
 }
 
-
 mod should_pass {
     use crate::*;
     // Same as should_fail::prove_add_one, with the added assumption of add_three's precondition.
