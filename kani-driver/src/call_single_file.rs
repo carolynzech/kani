@@ -185,6 +185,10 @@ impl KaniSession {
                 "--check-cfg=cfg(kani)",
                 // Do not invoke the linker since the compiler will not generate real object files
                 "-Clinker=echo",
+                // The target feature is irrelevant for Kani, since we do our own codegen,
+                // but pass this to suppress a compiler warning
+                // (c.f. https://github.com/model-checking/kani/issues/3878)
+                "-Ctarget-feature=neon",
             ]
             .map(OsString::from),
         );

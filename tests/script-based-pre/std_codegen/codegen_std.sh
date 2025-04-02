@@ -53,7 +53,7 @@ RUST_FLAGS=(
     "--extern=kani_core"
     "--cfg=kani"
     "-Zcrate-attr=feature(register_tool)"
-    "-Zcrate-attr=register_tool(kanitool)"
+    "-Zcrate-attr=register_tool(kanitool)",
 )
 export RUSTFLAGS="${RUST_FLAGS[@]}"
 export RUSTC="$KANI_DIR/target/kani/bin/kani-compiler"
