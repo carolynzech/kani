@@ -275,8 +275,29 @@ impl CodegenBackend for GotocCodegenBackend {
                         for harness in &unit.harnesses {
                             let transformer = BodyTransformation::new(&queries, tcx, &unit);
                             let model_path = units.harness_model_path(*harness).unwrap();
-                            let contract_metadata =
-                                contract_metadata_for_harness(tcx, harness.def.def_id());
+
+                            let md = units.harness_info.get(harness).unwrap();
+                            let contract_metadata = if reachability == ReachabilityType::Harnesses
+                                || !md.is_automatically_generated
+                            {
+                                contract_metadata_for_harness(tcx, harness.def.def_id())
+                            } else {
+                                let kind = harness.args().0;
+                                dbg!(&harness.name(), &kind);
+                                let kind = kind[0].expect_ty().kind();
+                                let (def, _) = kind.fn_def().unwrap();
+                                let def_id = def.def_id();
+                                dbg!(&def);
+                                let attrs = KaniAttributes::for_def_id(tcx, def_id);
+                                if attrs.has_contract() {
+                                    Some(rustc_internal::internal(tcx, def_id))
+                                } else {
+                                    None
+                                }
+                            };
+
+                            dbg!(&contract_metadata);
+
                             let (gcx, items, contract_info) = self.codegen_items(
                                 tcx,
                                 &[MonoItem::Fn(*harness)],

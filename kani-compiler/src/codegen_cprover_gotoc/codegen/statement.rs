@@ -156,7 +156,7 @@ impl GotocCtx<'_> {
                 self.codegen_assert_assume(
                     cond,
                     PropertyClass::Assume,
-                    "assumption failed",
+                    &format!("assumption failed for op {:?}", op),
                     location,
                 )
             }

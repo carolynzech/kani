@@ -53,7 +53,7 @@ struct CrateInfo {
 /// We group the harnesses that have the same stubs.
 pub struct CodegenUnits {
     crate_info: CrateInfo,
-    harness_info: HashMap<Harness, HarnessMetadata>,
+    pub harness_info: HashMap<Harness, HarnessMetadata>,
     units: Vec<CodegenUnit>,
 }
 
