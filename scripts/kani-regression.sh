@@ -13,6 +13,19 @@ export PATH=$SCRIPT_DIR:$PATH
 EXTRA_X_PY_BUILD_ARGS="${EXTRA_X_PY_BUILD_ARGS:-}"
 KANI_DIR=$SCRIPT_DIR/..
 
+# Default value for RUN_IGNORED
+RUN_IGNORED=false
+
+# Process command-line arguments
+for arg in "$@"; do
+  case $arg in
+    --run-ignored)
+      RUN_IGNORED=true
+      shift
+      ;;
+  esac
+done
+
 # This variable forces an error when there is a mismatch on the expected
 # descriptions from cbmc checks.
 # TODO: We should add a more robust mechanism to detect python unexpected behavior.
@@ -76,8 +89,17 @@ for testp in "${TESTS[@]}"; do
   suite=${testl[0]}
   mode=${testl[1]}
   echo "Check compiletest suite=$suite mode=$mode"
-  cargo run -p compiletest --quiet -- --suite $suite --mode $mode \
-      --quiet --no-fail-fast
+  compiletest_cmd="cargo run -p compiletest --quiet -- --suite $suite --mode $mode --no-fail-fast"
+  
+  # Add --ignored flag if requested. Don't pass --quiet so we can see which ignored tests succeed.
+  if [ "$RUN_IGNORED" = true ]; then
+    compiletest_cmd="$compiletest_cmd --ignored"
+  else
+    compiletest_cmd="$compiletest_cmd --quiet"
+  fi
+
+  # Execute the compiletest command
+  eval $compiletest_cmd
 done
 
 # We rarely benefit from re-using build artifacts in the firecracker test,

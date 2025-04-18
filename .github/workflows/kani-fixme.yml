@@ -1,0 +1,64 @@
+# Copyright Kani Contributors
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+# Check if any of the kani-fixme tests are now passing, 
+# and if so, fail with a message to update them to no longer be fixme tests.
+
+name: Kani FIXME/Ignored Tests Check
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches:
+      - '**'
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  fixme-ignored-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Kani
+        uses: actions/checkout@v4
+
+      - name: Setup Kani Dependencies
+        uses: ./.github/actions/setup
+        with:
+          os: ubuntu-24.04
+
+      - name: Run regression tests with ignored tests
+        id: run_tests
+        run: |
+          ./scripts/kani-regression.sh --run-ignored 2>&1 | tee test_output.txt || true
+          
+      - name: Check for passing FIXME or ignored tests
+        run: |
+          FAILED=false
+          
+          # Find tests with "fixme" in the name that passed
+          fixme_tests=$(grep -E "test .+ fixme.+ \.\.\. ok" test_output.txt || true)
+          if [ ! -z "$fixme_tests" ]; then
+            echo "Found passing tests with 'fixme' in their names:"
+            echo "$fixme_tests"
+            echo ""
+            FAILED=true
+          fi
+          
+          # Find tests with "ignored" in the name that passed
+          ignored_tests=$(grep -E "test .+ ignored.+ \.\.\. ok" test_output.txt || true)
+          if [ ! -z "$ignored_tests" ]; then
+            echo "Found passing tests with 'ignored' in their names:"
+            echo "$ignored_tests"
+            echo ""
+            FAILED=true
+          fi
+          
+          # If we found any passing fixme or ignored tests, fail the workflow
+          if [ "$FAILED" = true ]; then
+            echo "ERROR: Found passing tests with 'fixme' or 'ignored' in their names!"
+            echo "These tests should be renamed to remove the fixme/ignored designation."
+            exit 1
+          else
+            echo "All tests with 'fixme' or 'ignored' in their names are still failing, as expected."
+          fi
