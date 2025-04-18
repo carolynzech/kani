@@ -83,23 +83,24 @@ echo "-----------------------------"
 # Build `kani-cov`
 cargo build -p kani-cov
 
+if [ "$RUN_IGNORED" = true ]; then
+    cargo run -p compiletest --quiet -- --suite kani-fixme --mode kani --ignored --no-fail-fast
+fi
+
 # Extract testing suite information and run compiletest
 for testp in "${TESTS[@]}"; do
   testl=($testp)
   suite=${testl[0]}
   mode=${testl[1]}
   echo "Check compiletest suite=$suite mode=$mode"
-  compiletest_cmd="cargo run -p compiletest --quiet -- --suite $suite --mode $mode --no-fail-fast"
   
   # Add --ignored flag if requested. Don't pass --quiet so we can see which ignored tests succeed.
   if [ "$RUN_IGNORED" = true ]; then
-    compiletest_cmd="$compiletest_cmd --ignored"
+    cargo run -p compiletest --quiet -- --suite $suite --mode kani-fixme --no-fail-fast
   else
-    compiletest_cmd="$compiletest_cmd --quiet"
+    cargo run -p compiletest --quiet -- --suite $suite --mode $mode --no-fail-fast --quiet
   fi
 
-  # Execute the compiletest command
-  eval $compiletest_cmd
 done
 
 # We rarely benefit from re-using build artifacts in the firecracker test,

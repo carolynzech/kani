@@ -4,7 +4,7 @@
 # Check if any of the kani-fixme tests are now passing, 
 # and if so, fail with a message to update them to no longer be fixme tests.
 
-name: Kani FIXME/Ignored Tests Check
+name: Kani Fixme/Ignored Tests Check
 on:
   pull_request:
   merge_group:
@@ -32,7 +32,7 @@ jobs:
         run: |
           ./scripts/kani-regression.sh --run-ignored 2>&1 | tee test_output.txt || true
           
-      - name: Check for passing FIXME or ignored tests
+      - name: Check for passing fixme or ignored tests
         run: |
           FAILED=false
           
