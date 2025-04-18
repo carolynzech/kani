@@ -37,7 +37,7 @@ jobs:
           FAILED=false
           
           # Find tests with "fixme" in the name that passed
-          fixme_tests=$(grep -E "test .+ fixme.+ \.\.\. ok" test_output.txt || true)
+          fixme_tests=$(grep -E "test \[kani\].*(kani-fixme|fixme).*\.rs \.\.\. ok" test_output.txt || true)
           if [ ! -z "$fixme_tests" ]; then
             echo "Found passing tests with 'fixme' in their names:"
             echo "$fixme_tests"
@@ -46,9 +46,9 @@ jobs:
           fi
           
           # Find tests with "ignored" in the name that passed
-          ignored_tests=$(grep -E "test .+ ignored.+ \.\.\. ok" test_output.txt || true)
+          ignored_tests=$(grep -E "test .+ ignore.+ \.\.\. ok" test_output.txt || true)
           if [ ! -z "$ignored_tests" ]; then
-            echo "Found passing tests with 'ignored' in their names:"
+            echo "Found passing tests with 'ignore' in their names:"
             echo "$ignored_tests"
             echo ""
             FAILED=true
