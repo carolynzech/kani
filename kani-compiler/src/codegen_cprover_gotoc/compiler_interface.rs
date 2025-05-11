@@ -120,6 +120,11 @@ impl GotocCodegenBackend {
 
         // Re-collect reachable items after global transformations were applied. This is necessary
         // since global pass could add extra calls to instrumentation.
+
+        // [PERF]: if neither of the global passes are enabled, then the function bodies will be the same as they were after the first reachability analysis pass
+        // which means that we repeat the reachability analysis for no reason.
+        // Granted, we'll also grab all those function bodies from the transformer cache when we do the analysis,
+        // so it's not as bad as it could be (i.e., we're not going to repeat BodyTransformations), but we're still traversing the call graph for a second time for no reason.
         let (items, _) = with_timer(
             || collect_reachable_items(tcx, &mut transformer, starting_items),
             "codegen reachability analysis (second pass)",
@@ -127,6 +132,13 @@ impl GotocCodegenBackend {
 
         // Follow rustc naming convention (cx is abbrev for context).
         // https://rustc-dev-guide.rust-lang.org/conventions.html#naming-conventions
+
+        // [PERF]: Since we call this method on a per-harness basis (i.e., starting_items contains a single harness),
+        // we create a new GotoCtx for each harness, meaning that if two harnesses can reach the same function,
+        // we'll codegen the function twice; there's no caching in the symbol table cross-function.
+        // This has been the case since https://github.com/model-checking/kani/pull/2439, which changed Kani to generate one goto function per harness
+        // instead of one per-crate. We still want to keep that behavior of generating one goto program per harness, but I wonder
+        // if we could reuse GotoCtx on a codegen unit basis, not a harness basis.
         let mut gcx =
             GotocCtx::new(tcx, (*self.queries.lock().unwrap()).clone(), machine_model, transformer);
         check_reachable_items(gcx.tcx, &gcx.queries, &items);
@@ -199,6 +211,8 @@ impl GotocCodegenBackend {
             None
         };
 
+        // [PERF]: this can happen outside of this function so that we can write all the goto files in parallel,
+        // c.f. https://github.com/model-checking/kani/issues/2505#issuecomment-1612055191
         // No output should be generated if user selected no_codegen.
         if !tcx.sess.opts.unstable_opts.no_codegen && tcx.sess.opts.output_types.should_codegen() {
             with_timer(
@@ -319,6 +333,9 @@ impl CodegenBackend for GotocCodegenBackend {
                         // We reset the body cache for now because each codegen unit has different
                         // configurations that affect how we transform the instance body.
                         for harness in &unit.harnesses {
+                            // [PERF]: We used to call this constructor outside this harness loop, i.e. on a per codegen-unit basis,
+                            // https://github.com/model-checking/kani/pull/3374/files#r1695423911 changed this behavior for global passes,
+                            // but again, if global passes aren't enabled, this is wasted work since we're resetting the cache for no reason.
                             let transformer = BodyTransformation::new(&queries, tcx, unit);
                             let model_path = units.harness_model_path(*harness).unwrap();
                             let is_automatic_harness = units.is_automatic_harness(harness);

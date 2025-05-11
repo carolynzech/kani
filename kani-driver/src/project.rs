@@ -95,6 +95,7 @@ impl Project {
         // For each harness (test or proof) from each metadata, read the path for the goto
         // SymTabGoto file. Use that path to find all the other artifacts.
         let mut artifacts = vec![];
+        // [PERF]: parallelize this loop
         for crate_metadata in &metadata {
             for harness_metadata in
                 crate_metadata.test_harnesses.iter().chain(crate_metadata.proof_harnesses.iter())
