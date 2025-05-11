@@ -201,14 +201,24 @@ impl GotocCodegenBackend {
 
         // No output should be generated if user selected no_codegen.
         if !tcx.sess.opts.unstable_opts.no_codegen && tcx.sess.opts.output_types.should_codegen() {
-            let pretty = self.queries.lock().unwrap().args().output_pretty_json;
-            write_file(symtab_goto, ArtifactType::PrettyNameMap, &pretty_name_map, pretty);
-            write_goto_binary_file(symtab_goto, &gcx.symbol_table);
-            write_file(symtab_goto, ArtifactType::TypeMap, &type_map, pretty);
-            // If they exist, write out vtable virtual call function pointer restrictions
-            if let Some(restrictions) = vtable_restrictions {
-                write_file(symtab_goto, ArtifactType::VTableRestriction, &restrictions, pretty);
-            }
+            with_timer(
+                || {
+                    let pretty = self.queries.lock().unwrap().args().output_pretty_json;
+                    write_file(symtab_goto, ArtifactType::PrettyNameMap, &pretty_name_map, pretty);
+                    write_goto_binary_file(symtab_goto, &gcx.symbol_table);
+                    write_file(symtab_goto, ArtifactType::TypeMap, &type_map, pretty);
+                    // If they exist, write out vtable virtual call function pointer restrictions
+                    if let Some(restrictions) = vtable_restrictions {
+                        write_file(
+                            symtab_goto,
+                            ArtifactType::VTableRestriction,
+                            &restrictions,
+                            pretty,
+                        );
+                    }
+                },
+                "writing goto to file",
+            );
         }
 
         (gcx, items, contract_info)
@@ -300,7 +310,8 @@ impl CodegenBackend for GotocCodegenBackend {
             let mut results = GotoCodegenResults::new(tcx, reachability);
             match reachability {
                 ReachabilityType::AllFns | ReachabilityType::Harnesses => {
-                    let mut units = CodegenUnits::new(&queries, tcx);
+                    let mut units =
+                        with_timer(|| CodegenUnits::new(&queries, tcx), "construct CodegenUnits");
                     let mut modifies_instances = vec![];
                     let mut loop_contracts_instances = vec![];
                     // Cross-crate collecting of all items that are reachable from the crate harnesses.

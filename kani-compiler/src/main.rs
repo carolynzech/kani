@@ -54,7 +54,21 @@ mod kani_queries;
 mod session;
 
 use rustc_driver::{TimePassesCallbacks, run_compiler};
-use std::env;
+use std::{env, time::Instant};
+use tracing::info;
+
+/// Execute the provided function and measure the clock time it took for its execution.
+/// Log the time with the given description.
+pub fn with_timer<T, F>(func: F, description: &str) -> T
+where
+    F: FnOnce() -> T,
+{
+    let start = Instant::now();
+    let ret = func();
+    let elapsed = start.elapsed();
+    info!("Finished {description} in {}s", elapsed.as_secs_f32());
+    ret
+}
 
 /// Main function. Configure arguments and run the compiler.
 fn main() {
@@ -63,7 +77,7 @@ fn main() {
 
     // Configure and run compiler.
     if kani_compiler {
-        kani_compiler::run(rustc_args);
+        with_timer(|| kani_compiler::run(rustc_args), "compiler execution time");
     } else {
         let mut callbacks = TimePassesCallbacks::default();
         run_compiler(&rustc_args, &mut callbacks);
