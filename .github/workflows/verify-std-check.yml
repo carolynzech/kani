@@ -105,7 +105,7 @@ jobs:
           echo "Autoharness codegen time of base: " >> "$GITHUB_STEP_SUMMARY"
           {
             time kani autoharness -Z autoharness -Z unstable-options --std ./library --target-dir ${{ runner.temp }} -Z function-contracts \
-              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --quiet --cbmc-args --object-bits 12
+              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --cbmc-args --object-bits 12
           } 2>&1 | tee $GITHUB_STEP_SUMMARY
         
   verify-std:
