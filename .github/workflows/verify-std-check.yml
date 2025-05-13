@@ -54,13 +54,22 @@ jobs:
           cargo build-dev --release
           echo "$(pwd)/scripts" >> $GITHUB_PATH
       
-      - name: Run codegen with HEAD
+      - name: Time codegen with HEAD
         working-directory: verify-rust-std
         run: |
-          echo "Codegen time with this PR: "
+          echo "Manual harness codegen time with this PR: " >> "$GITHUB_STEP_SUMMARY"
           {
             time kani verify-std -Z unstable-options ./library --target-dir ${{ runner.temp }} -Z function-contracts \
-              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --cbmc-args --object-bits 12
+              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --quiet --cbmc-args --object-bits 12
+          } 2>&1 | tee $GITHUB_STEP_SUMMARY
+      
+      - name: Time autoharness codegen with HEAD
+        working-directory: verify-rust-std
+        run: |
+          echo "Autoharness codegen time with this PR: " >> "$GITHUB_STEP_SUMMARY"
+          {
+            time kani autoharness -Z autoharness -Z unstable-options --std ./library --target-dir ${{ runner.temp }} -Z function-contracts \
+              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --quiet --cbmc-args --object-bits 12
           } 2>&1 | tee $GITHUB_STEP_SUMMARY
       
       - name: Checkout BASE
@@ -84,10 +93,19 @@ jobs:
       - name: Time codegen with BASE
         working-directory: verify-rust-std
         run: |
-          echo "Codegen time of base: "
+          echo "Manual codegen time of base: " >> "$GITHUB_STEP_SUMMARY"
           {
             time kani verify-std -Z unstable-options ./library --target-dir ${{ runner.temp }} -Z function-contracts \
-              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --cbmc-args --object-bits 12
+              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --quiet --cbmc-args --object-bits 12
+          } 2>&1 | tee $GITHUB_STEP_SUMMARY
+      
+      - name: Time autoharness codegen with BASE
+        working-directory: verify-rust-std
+        run: |
+          echo "Autoharness codegen time of base: " >> "$GITHUB_STEP_SUMMARY"
+          {
+            time kani autoharness -Z autoharness -Z unstable-options --std ./library --target-dir ${{ runner.temp }} -Z function-contracts \
+              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --quiet --cbmc-args --object-bits 12
           } 2>&1 | tee $GITHUB_STEP_SUMMARY
         
   verify-std:
