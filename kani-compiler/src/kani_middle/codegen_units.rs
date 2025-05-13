@@ -234,10 +234,10 @@ fn extract_contracts(
 ) -> BTreeSet<ContractUsage> {
     let def = harness.def;
     let mut result = BTreeSet::new();
-    if let HarnessKind::ProofForContract { target_fn } = &metadata.attributes.kind {
-        if let Ok(check_def) = expect_resolve_fn(tcx, def, target_fn, "proof_for_contract") {
-            result.insert(ContractUsage::Check(check_def.def_id().to_index()));
-        }
+    if let HarnessKind::ProofForContract { target_fn } = &metadata.attributes.kind
+        && let Ok(check_def) = expect_resolve_fn(tcx, def, target_fn, "proof_for_contract")
+    {
+        result.insert(ContractUsage::Check(check_def.def_id().to_index()));
     }
 
     for stub in &metadata.attributes.verified_stubs {
@@ -318,7 +318,7 @@ fn get_all_manual_harnesses(
     harnesses
         .into_iter()
         .map(|harness| {
-            let metadata = gen_proof_metadata(tcx, harness, &base_filename);
+            let metadata = gen_proof_metadata(tcx, harness, base_filename);
             (harness, metadata)
         })
         .collect::<HashMap<_, _>>()
@@ -347,7 +347,7 @@ fn get_all_automatic_harnesses(
             .unwrap();
             let metadata = gen_automatic_proof_metadata(
                 tcx,
-                &base_filename,
+                base_filename,
                 &fn_to_verify,
                 harness.mangled_name(),
             );
@@ -441,7 +441,7 @@ fn automatic_harness_partition(
                 &kani_any_body.blocks[0].terminator.kind
             {
                 if let Some((def, args)) = func.ty(body.arg_locals()).unwrap().kind().fn_def() {
-                    Instance::resolve(def, &args).is_ok()
+                    Instance::resolve(def, args).is_ok()
                 } else {
                     false
                 }
