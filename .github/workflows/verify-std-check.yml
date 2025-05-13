@@ -21,6 +21,75 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
+  time-codegen:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Kani does not support windows.
+        os: [ ubuntu-22.04, macos-14 ]
+    steps:
+      - name: Checkout Library
+        uses: actions/checkout@v4
+        with:
+          repository: model-checking/verify-rust-std
+          path: verify-rust-std
+          submodules: true
+
+      - name: Checkout `Kani`
+        uses: actions/checkout@v4
+        with:
+          path: kani
+          fetch-depth: 0
+
+      - name: Setup Kani Dependencies
+        uses: ./kani/.github/actions/setup
+        with:
+          os: ${{ matrix.os }}
+          kani_dir: kani
+
+      - name: Build Kani in Release Mode
+        working-directory: kani
+        # Run in release mode for timing purposes
+        run: |
+          cargo build-dev --release
+          echo "$(pwd)/scripts" >> $GITHUB_PATH
+      
+      - name: Run codegen with HEAD
+        working-directory: verify-rust-std
+        run: |
+          echo "Codegen time with this PR: "
+          {
+            time kani verify-std -Z unstable-options ./library --target-dir ${{ runner.temp }} -Z function-contracts \
+              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --cbmc-args --object-bits 12
+          } 2>&1 | tee $GITHUB_STEP_SUMMARY
+      
+      - name: Checkout BASE
+        working-directory: kani
+        run: |
+          BASE_REF=${{ github.event.pull_request.base.sha }}
+          git checkout ${BASE_REF}
+  
+      - name: Setup Kani Dependencies BASE
+        uses: ./kani/.github/actions/setup
+        with:
+          os: ${{ matrix.os }}
+          kani_dir: kani
+  
+      - name: Build Kani BASE in Release Mode
+        working-directory: kani
+        run: |
+          cargo build-dev --release
+          echo "$(pwd)/scripts" >> $GITHUB_PATH
+  
+      - name: Time codegen with BASE
+        working-directory: verify-rust-std
+        run: |
+          echo "Codegen time of base: "
+          {
+            time kani verify-std -Z unstable-options ./library --target-dir ${{ runner.temp }} -Z function-contracts \
+              -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --only-codegen --cbmc-args --object-bits 12
+          } 2>&1 | tee $GITHUB_STEP_SUMMARY
+        
   verify-std:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -67,7 +136,7 @@ jobs:
         continue-on-error: true
         run: |
           kani verify-std -Z unstable-options ./library --target-dir ${{ runner.temp }} -Z function-contracts \
-            -Z mem-predicates -Z loop-contracts --cbmc-args --object-bits 12
+            -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --cbmc-args --object-bits 12
 
       # If the head failed, check if it's a new failure.
       - name: Checkout BASE
@@ -97,7 +166,7 @@ jobs:
         continue-on-error: true
         run: |
           kani verify-std -Z unstable-options ./library --target-dir ${{ runner.temp }} -Z function-contracts \
-            -Z mem-predicates -Z loop-contracts --cbmc-args --object-bits 12
+            -Z mem-predicates -Z loop-contracts -Z float-lib -Z c-ffi --cbmc-args --object-bits 12
 
       - name: Compare PR results
         if: steps.check-head.outcome != 'success' && steps.check-head.outcome != steps.check-base.outcome
@@ -106,4 +175,3 @@ jobs:
           echo "HEAD: ${{ steps.check-head.outcome }}"
           echo "BASE: ${{ steps.check-base.outcome }}"
           exit 1
-
