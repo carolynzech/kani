@@ -307,10 +307,9 @@ pub(crate) fn std_project(std_path: &Path, session: &KaniSession) -> Result<Proj
 
     // Create dummy crate needed to build using `cargo -Z build-std`
     let dummy_crate = outdir.join("kani_verify_std");
-    if dummy_crate.exists() {
-        fs::remove_dir_all(&dummy_crate)?;
+    if !dummy_crate.exists() {
+        session.cargo_init_lib(&dummy_crate)?;
     }
-    session.cargo_init_lib(&dummy_crate)?;
 
     // Build cargo project for dummy crate.
     let std_path = std_path.canonicalize()?;
