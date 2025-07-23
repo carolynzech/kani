@@ -667,7 +667,7 @@ impl<'a> ContractConditionsHandler<'a> {
 fn contract_main(
     attr: TokenStream,
     item: TokenStream,
-    is_requires: ContractConditionsType,
+    contract_typ: ContractConditionsType,
 ) -> TokenStream {
     // Contract expansion edits the body of the function,
     // so we can't allow applying contract attributes to method decls without bodies.
@@ -677,14 +677,14 @@ fn contract_main(
         let error_msg = format!(
             "#[kani::{contract_typ}] cannot be applied to trait method declarations without default bodies.\n\
              help: Apply this attribute to the implementation of the trait method instead.",
-            is_requires
         );
         return syn::Error::new_spanned(trait_fn.sig, error_msg).into_compile_error().into();
     }
     let attr_copy = TokenStream2::from(attr.clone());
     let mut item_fn = parse_macro_input!(item as ItemFn);
     let function_state = ContractFunctionState::from_attributes(&item_fn.attrs);
-    let handler = match ContractConditionsHandler::new(is_requires, attr, &mut item_fn, attr_copy) {
+    let handler = match ContractConditionsHandler::new(contract_typ, attr, &mut item_fn, attr_copy)
+    {
         Ok(handler) => handler,
         Err(e) => return e.into_compile_error().into(),
     };
