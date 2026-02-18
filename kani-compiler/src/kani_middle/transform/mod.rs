@@ -78,9 +78,10 @@ impl BodyTransformation {
         // This has to come first, since creating harnesses affects later stubbing and contract passes.
         transformer.add_pass(queries, AutomaticHarnessPass::new(queries));
         transformer.add_pass(queries, AutomaticArbitraryPass::new(unit, queries));
+        transformer.add_pass(queries, FunctionWithContractPass::new(tcx, queries, unit));
+        transformer.add_pass(queries, LoopContractPass::new(tcx, queries, unit));
         transformer.add_pass(queries, FnStubPass::new(&unit.stubs));
         transformer.add_pass(queries, ExternFnStubPass::new(&unit.stubs));
-        transformer.add_pass(queries, FunctionWithContractPass::new(tcx, queries, unit));
         // This has to come after the contract pass since we want this to only replace the closure
         // body that is relevant for this harness.
         transformer.add_pass(queries, AnyModifiesPass::new(tcx, queries, unit));
@@ -106,7 +107,6 @@ impl BodyTransformation {
             },
         );
         transformer.add_pass(queries, IntrinsicGeneratorPass::new(unsupported_check_type, queries));
-        transformer.add_pass(queries, LoopContractPass::new(tcx, queries, unit));
         transformer.add_pass(queries, RustcIntrinsicsPass::new(queries));
         transformer
     }
